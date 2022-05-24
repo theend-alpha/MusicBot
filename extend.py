@@ -3,6 +3,8 @@ from pyrogram import Client
 from typing import List
 from typing import Union
 from pyrogram import filters
+import config
+from config import API_ID, API_HASH, BOT_TOKEN 
 
 COMMAND_PREFIXES = '/'
 
@@ -24,3 +26,9 @@ def command(commands: Union[str, List[str]]):
 
 smexy = Client(config.SESSION_NAME, config.API_ID, config.API_HASH)
 pytgcalls = PyTgCalls(smexy)
+
+app = Client(
+    "MusicBot",
+    API_ID,
+    API_HASH,
+    bot_token=BOT_TOKEN,
