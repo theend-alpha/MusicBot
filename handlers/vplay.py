@@ -1,333 +1,242 @@
-import asyncio
 import os
-
-from pyrogram import filters
-from pyrogram import Client
-from pyrogram import Client as app
-from pyrogram.errors import UserAlreadyParticipant, UserNotParticipant
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from os import path
+from pyrogram import Client, filters
+from pyrogram.types import Message, Voice, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from pyrogram.errors import UserAlreadyParticipant
+from callsmusic import callsmusic, queues
+from callsmusic.callsmusic import client as USER
+from helpers.admins import get_administrators
+import requests
+import aiohttp
+from youtube_search import YoutubeSearch
+import converter
+from downloaders import youtube
+from config import DURATION_LIMIT, SUPPORT_GROUP
+from helpers.filters import command
+from helpers.decorators import errors
+from helpers.errors import DurationLimitError
+from helpers.gets import get_url, get_file_name
+import aiofiles
+import ffmpeg
 from pytgcalls import StreamType
-from pytgcalls.types.input_stream import AudioVideoPiped
-from pytgcalls.types.input_stream.quality import (
-    HighQualityAudio,
-    HighQualityVideo,
-    LowQualityVideo,
-    MediumQualityVideo,
+from pytgcalls.types.input_stream import InputVideoStream
+from pytgcalls.types.input_stream import InputStream
+
+
+def transcode(filename):
+    ffmpeg.input(filename).output("input.raw", format='s16le', acodec='pcm_s16le', ac=2, ar='48k').overwrite_output().run() 
+    os.remove(filename)
+
+# Convert seconds to mm:ss
+def convert_seconds(seconds):
+    seconds = seconds % (24 * 3600)
+    seconds %= 3600
+    minutes = seconds // 60
+    seconds %= 60
+    return "%02d:%02d" % (minutes, seconds)
+
+
+# Convert hh:mm:ss to seconds
+def time_to_seconds(time):
+    stringt = str(time)
+    return sum(int(x) * 60 ** i for i, x in enumerate(reversed(stringt.split(':'))))
+
+
+@Client.on_message(
+    command(["play", "p", "fuck"])
+    & filters.group
+    & ~filters.edited
+    & ~filters.forwarded
+    & ~filters.via_bot
 )
-from youtubesearchpython import VideosSearch
+async def play(_, message: Message):
+    global que
+    global useer
 
-from config import BOT_NAME, BOT_USERNAME 
-from extend import SUPPORT_GROUP, UPDATES_CHANNEL, GROUP, CHANNEL
-from extend import command
-from logger import LOG_CHAT
-from extend import smexy as ASS_ACC
-from extend import app
-from queues import QUEUE, add_to_queue, get_queue
-from extend import pytgcalls as call_py
+    await message.delete()
 
+    fallen = await message.reply("» ᴘʀᴏᴄᴇssɪɴɢ​... ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ ʙᴀʙʏ🔎")
 
-def ytsearch(query):
+    chumtiya = message.from_user.mention
+
+    administrators = await get_administrators(message.chat)
+    chid = message.chat.id
+
     try:
-        search = VideosSearch(query, limit=1).result()
-        data = search["result"][0]
-        songname = data["title"]
-        url = data["link"]
-        duration = data["duration"]
-        thumbnail = f"https://i.ytimg.com/vi/{data['id']}/hqdefault.jpg"
-        return [songname, url, duration, thumbnail]
+        user = await USER.get_me()
+    except:
+        user.first_name = "Anonymous"
+    usar = user
+    wew = usar.id
+    try:
+        await _.get_chat_member(chid, wew)
+    except:
+        for administrator in administrators:
+            if administrator == message.from_user.id:
+                try:
+                    invitelink = await _.export_chat_invite_link(chid)
+                except:
+                    await fallen.edit(
+                        "<b>» ꜰɪʀsᴛʟʏ ᴍᴀᴋᴇ ᴍᴇ ᴀᴅᴍɪɴ ʙᴀʙʏ</b>")
+                    return
+
+                try:
+                    await USER.join_chat(invitelink)
+                    await USER.send_message(
+                        message.chat.id, "» ᴀssɪsᴛᴀɴᴛ sᴜᴄᴄᴇssꜰᴜʟʏ ᴊᴏɪɴᴇᴅ ᴛʜᴇ ᴄʜᴀᴛ ʙᴀʙʏ, ɴᴏᴡ ʏᴏᴜ ᴄᴀɴ ᴘʟᴀʏ sᴏɴɢs​.")
+
+                except UserAlreadyParticipant:
+                    pass
+                except Exception:
+                    await fallen.edit(
+                        f"<b>» ᴀssɪsᴛᴀɴᴛ ɪs ɴᴏᴛ ɪɴ ᴛʜɪs ᴄʜᴀᴛ ʙᴀʙʏ, sᴇɴᴅ /join ғɪʀsᴛ ᴛɪᴍᴇ ᴛᴏ ᴏʀᴅᴇʀ ᴛʜᴇ ᴀssɪsᴛᴀɴᴛ ᴛᴏ ᴊ​ᴏɪɴ ʏᴏᴜʀ ᴄʜᴀᴛ.")
+    try:
+        await USER.get_chat(chid)
     except Exception as e:
-        print(e)
-        return 0
-
-
-async def ytdl(link):
-    proc = await asyncio.create_subprocess_exec(
-        "yt-dlp",
-        "-g",
-        "-f",
-        "best[height<=?720][width<=?1280]",
-        f"{link}",
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
+        await fallen.edit(
+            f"<i>» ᴀssɪsᴛᴀɴᴛ ғᴀɪʟᴇᴅ ᴛᴏ ᴊᴏɪɴ ᴛʜɪs ᴄʜᴀᴛ.</i>\n\nʀᴇᴀsᴏɴ : {e}")
+        return
+    
+    audio = (
+        (message.reply_to_message.audio or message.reply_to_message.voice)
+        if message.reply_to_message
+        else None
     )
-    stdout, stderr = await proc.communicate()
-    if stdout:
-        return 1, stdout.decode().split("\n")[0]
-    else:
-        return 0, stderr.decode()
+    url = get_url(message)
 
+    if audio:
+        if round(audio.duration / 60) > DURATION_LIMIT:
+            raise DurationLimitError(
+                f"» sᴏʀʀʏ ʙᴀʙʏ, ᴛʀᴀᴄᴋ ʟᴏɴɢᴇʀ ᴛʜᴀɴ  {DURATION_LIMIT} ᴍɪɴᴜᴛᴇs ᴀʀᴇ ɴᴏᴛ ᴀʟʟᴏᴡᴇᴅ ᴛᴏ ᴘʟᴀʏ"
+            )
 
+        file_name = get_file_name(audio)
+        title = file_name
+        duration = round(audio.duration / 60)
+        views = "Locally added"
 
-@Client.on_message(command("vplay") & filters.group)
-async def vplay(c: Client, message: Message):
-    replied = message.reply_to_message
-    chat_id = message.chat.id
-    user_id = message.from_user.id
-    user_name = message.from_user.first_name
-    rpk = "[" + user_name + "](tg://user?id=" + str(user_id) + ")"
-    keyboard = InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton("sᴜᴘᴘᴏʀᴛ", url=f"https://t.me/{GROUP}"),
-                InlineKeyboardButton("ᴄʜᴀɴɴᴇʟ", url=f"https://t.me/{CHANNEL}"),
-            ]
-        ]
-    )
-    if message.sender_chat:
-        return await message.reply_text(
-            "You are **Anonymous Admin!**\n\n» back to user account from admin rights."
+        file_path = await converter.convert(
+            (await message.reply_to_message.download(file_name))
+            if not path.isfile(path.join("downloads", file_name))
+            else file_name
         )
-    try:
-        aing = await c.get_me()
-    except Exception as e:
-        return await message.reply_text(f"error:\n\n{e}")
-    a = await c.get_chat_member(chat_id, aing.id)
-    if a.status != "administrator":
-        await message.reply_text(
-            f"""
-To use me I need to be admin with permissions: 
-» Delete message 
-» Block user 
-» Add user 
-» Manage voice chat 
-Powered by : [Premium Music](t.me/{BOT_USERNAME})
-""",
-            disable_web_page_preview=True,
-        )
-        return
-    if not a.can_manage_voice_chats:
-        await message.reply_text(
-            f"""
-To use me I need to be admin with permissions: 
-» Manage voice chat 
-Powered by: [{BOT_NAME}](t.me/{BOT_USERNAME})
-""",
-            disable_web_page_preview=True,
-        )
-        return
-    if not a.can_delete_messages:
-        await message.reply_text(
-            f"""
-To use me I need to be admin with permissions: 
 
-» Delete message 
-Powered by: [Premium Music](t.me/{BOT_USERNAME})
-""",
-            disable_web_page_preview=True,
-        )
-        return
-    if not a.can_invite_users:
-        await message.reply_text(
-            f"""
-💡 To use me, I need to be an admin with permission: 
+    elif url:
+        try:
+            results = YoutubeSearch(url, max_results=1).to_dict()
+            # print results
+            title = results[0]["title"]
+            thumbnail = results[0]["thumbnails"][0]
+            thumb_name = f"thumb{title}.jpg"
+            thumb = requests.get(thumbnail, allow_redirects=True)
+            open(thumb_name, "wb").write(thumb.content)
+            duration = results[0]["duration"]
+            url_suffix = results[0]["url_suffix"]
+            views = results[0]["views"]
+            durl = url
+            durl = durl.replace("youtube", "youtubepp")
 
-»❌ Add users 
-Powered by: [Premium Music](t.me/{BOT_USERNAME})
-""",
-            disable_web_page_preview=True,
-        )
-        return
-    try:
-        ubot = await ASS_ACC.get_me()
-        b = await c.get_chat_member(chat_id, ubot.id)
-        if b.status == "kicked":
-            await message.reply_text(
-                f"@{ubot.username} **Banned in the group** {message.chat.title}\n\n» **unban Assistant first if you want to use this bot.**"
+            secmul, dur, dur_arr = 1, 0, duration.split(":")
+            for i in range(len(dur_arr) - 1, -1, -1):
+                dur += int(dur_arr[i]) * secmul
+                secmul *= 60
+
+        except Exception as e:
+            title = "NaN"
+            duration = "NaN"
+            views = "NaN"
+
+        if (dur / 60) > DURATION_LIMIT:
+            await fallen.edit(
+                f"» sᴏʀʀʏ ʙᴀʙʏ, ᴛʀᴀᴄᴋ ʟᴏɴɢᴇʀ ᴛʜᴀɴ  {DURATION_LIMIT} ᴍɪɴᴜᴛᴇs ᴀʀᴇ ɴᴏᴛ ᴀʟʟᴏᴡᴇᴅ ᴛᴏ ᴘʟᴀʏ"
             )
             return
-    except UserNotParticipant:
-        if message.chat.username:
-            try:
-                await ASS_ACC.join_chat(message.chat.username)
-            except Exception as e:
-                await message.reply_text(
-                    f"❌ **@{ubot.username} Assistant failed to join**\n\n**Reason**: `{e}`"
-                )
-                return
-        else:
-            try:
-                invite_link = await message.chat.export_invite_link()
-                if "+" in invite_link:
-                    link_hash = (invite_link.replace("+", "")).split("t.me/")[1]
-                await ASS_ACC.join_chat(f"https://t.me/joinchat/{link_hash}")
-            except UserAlreadyParticipant:
-                pass
-            except Exception as e:
-                return await message.reply_text(
-                    f"❌ **@{ubot.username} Assistant failed to join**\n\n**Reason**: `{e}`"
-                )
-
-    if replied:
-        if replied.video or replied.document:
-            what = "Audio Searched"
-            await LOG_CHAT(message, what)
-            loser = await replied.reply("📥 **Downloading Video...**")
-            dl = await replied.download()
-            link = replied.link
-            if len(message.command) < 2:
-                Q = 720
-            else:
-                pq = message.text.split(None, 1)[1]
-                if pq == "720" or "480" or "360":
-                    Q = int(pq)
-                else:
-                    Q = 720
-                    await loser.edit(
-                        "» **Only 720, 480, 360 allowed** \n💡 **Now Streaming Video In 720p**"
-                    )
-            try:
-                if replied.video:
-                    songname = replied.video.file_name[:70]
-                    duration = replied.video.duration
-                elif replied.document:
-                    songname = replied.document.file_name[:70]
-                    duration = replied.document.duration
-            except BaseException:
-                songname = "Video"
-
-            if chat_id in QUEUE:
-                pos = add_to_queue(chat_id, songname, dl, link, "Video", Q)
-                await loser.delete()
-                requester = f"[{message.from_user.first_name}](tg://user?id={message.from_user.id})"
-                await app.send_message(
-                    chat_id,
-                    f"""
-**Track added to queue** 
-
-**Name:** [{songname[:999]}]({link}) 
-🎧 **On request:** {requester} 
-#️⃣ **Queue position** {pos}
-""",
-                    disable_web_page_preview=True,
-                    reply_markup=keyboard,
-                )
-            else:
-                if Q == 720:
-                    amaze = HighQualityVideo()
-                elif Q == 480:
-                    amaze = MediumQualityVideo()
-                elif Q == 360:
-                    amaze = LowQualityVideo()
-                await call_py.join_group_call(
-                    chat_id,
-                    AudioVideoPiped(
-                        dl,
-                        HighQualityAudio(),
-                        amaze,
-                    ),
-                    stream_type=StreamType().pulse_stream,
-                )
-                add_to_queue(chat_id, songname, dl, link, "Video", Q)
-                await loser.delete()
-                requester = f"[{message.from_user.first_name}](tg://user?id={message.from_user.id})"
-                await app.send_message(
-                    chat_id,
-                    f"""
-▶️ __Playing Video__
-
-🏷 **Name:** [{songname[:999]}]({link})
-🎧 **Requested By:** {requester}
-
-💬 **Played on:** {message.chat.title}
-""",
-                    disable_web_page_preview=True,
-                    reply_markup=keyboard,
-                )
-
+        file_path = await converter.convert(youtube.download(url))
     else:
         if len(message.command) < 2:
-            await message.reply(
-                "**Usage:.** /vplay [title Or Reply to a audio file] "
+            return await fallen.edit(
+                "» ɢɪᴠᴇ sᴏᴍᴇ ᴛᴇxᴛ ᴛᴏ sᴇᴀʀᴄʜ ʙᴀʙʏ🤦🏻‍♂️"
             )
-        else:
-            what = "Query Given"
-            await LOG_CHAT(message, what)
-            loser = await message.reply("🔎 **Searching**")
-            query = message.text.split(None, 1)[1]
-            search = ytsearch(query)
-            Q = 480
-            amaze = HighQualityVideo()
-            if search == 0:
-                await loser.edit("**No results found.**")
-            else:
-                songname = search[0]
-                url = search[1]
-                duration = search[2]
-                thumbnail = search[3]
-                veez, ytlink = await ytdl(url)
-                if veez == 0:
-                    await loser.edit(f"❌ yt-dl problem detected\n\n» `{ytlink}`")
-                else:
-                    if chat_id in QUEUE:
-                        pos = add_to_queue(chat_id, songname, ytlink, url, "Video", Q)
-                        await loser.delete()
-                        requester = f"[{message.from_user.first_name}](tg://user?id={message.from_user.id})"
-                        await app.send_message(
-                                chat_id,
-                                f"""
-💡 **Tracks added to Queue**
+        await fallen.edit("🔎")
+        query = message.text.split(None, 1)[1]
+        # print(query)
+        try:
+            results = YoutubeSearch(query, max_results=1).to_dict()
+            url = f"https://youtube.com{results[0]['url_suffix']}"
+            # print results
+            title = results[0]["title"]
+            thumbnail = results[0]["thumbnails"][0]
+            thumb_name = f"thumb{title}.jpg"
+            thumb = requests.get(thumbnail, allow_redirects=True)
+            open(thumb_name, "wb").write(thumb.content)
+            duration = results[0]["duration"]
+            url_suffix = results[0]["url_suffix"]
+            views = results[0]["views"]
+            durl = url
+            durl = durl.replace("youtube", "youtubepp")
 
-🏷 **Name:** [{songname[:999]}]({url})
-⏱️ **Duration:** {duration}
-🎧 **Requested by:** {requester}
+            secmul, dur, dur_arr = 1, 0, duration.split(":")
+            for i in range(len(dur_arr) - 1, -1, -1):
+                dur += int(dur_arr[i]) * secmul
+                secmul *= 60
 
-#️⃣ **At position** {pos}
-""",
-                            disable_web_page_preview=True,
-                            reply_markup=keyboard,
-                        )
-                    else:
-                        try:
-                            await call_py.join_group_call(
-                                chat_id,
-                                AudioVideoPiped(
-                                    ytlink,
-                                    HighQualityAudio(),
-                                    amaze,
-                                ),
-                                stream_type=StreamType().pulse_stream,
-                            )
-                            add_to_queue(chat_id, songname, ytlink, url, "Video", Q)
-                            await loser.delete()
-                            requester = f"[{message.from_user.first_name}](tg://user?id={message.from_user.id})"
-                            await app.send_message(
-                                chat_id,
-                                f"""
-▷ __Playing Video__
-
-🏷 **Name:** [{songname[:999]}]({url})
-⏱️ **Duration:** {duration}
-🎧 **Requested By:** {requester}
-
-💬 **Playing On:** {message.chat.title}
-""",
-                                disable_web_page_preview=True,
-                                reply_markup=keyboard,
-                            )
-                        except Exception as ep:
-                            await loser.delete()
-                            await message.reply_text(f"Error: `{ep}`")
-
-
-@Client.on_message(command("vplaylist") & filters.group)
-async def playlist(client, m: Message):
-    chat_id = m.chat.id
-    if chat_id in QUEUE:
-        chat_queue = get_queue(chat_id)
-        if len(chat_queue) == 1:
-            await m.delete()
-            await m.reply(
-                f"**🎧 NOW PLAYING:** \n[{chat_queue[0][0]}]({chat_queue[0][2]}) | `{chat_queue[0][3]}`",
-                disable_web_page_preview=True,
+        except Exception as e:
+            await fallen.edit(
+                "» ɴᴏᴛ ғᴏᴜɴᴅ, ᴛʀʏ sᴇᴀʀᴄʜɪɴɢ ᴡɪᴛʜ ᴛʜᴇ sᴏɴɢ ɴᴀᴍᴇ ʙᴀʙʏ"
             )
-        else:
-            QUE = f"**🎧 NOW PLAYING:** \n[{chat_queue[0][0]}]({chat_queue[0][2]}) | `{chat_queue[0][3]}` \n\n**⏯ QUEUE LIST:**"
-            l = len(chat_queue)
-            for x in range(1, l):
-                hmm = chat_queue[x][0]
-                hmmm = chat_queue[x][2]
-                hmmmm = chat_queue[x][3]
-                QUE = QUE + "\n" + f"**#{x}** - [{hmm}]({hmmm}) | `{hmmmm}`\n"
-            await m.reply(QUE, disable_web_page_preview=True)
+            print(str(e))
+            return
+
+        if (dur / 60) > DURATION_LIMIT:
+            await fallen.edit(
+                f"» sᴏʀʀʏ ʙᴀʙʏ, ᴛʀᴀᴄᴋ ʟᴏɴɢᴇʀ ᴛʜᴀɴ  {DURATION_LIMIT} ᴍɪɴᴜᴛᴇs ᴀʀᴇ ɴᴏᴛ ᴀʟʟᴏᴡᴇᴅ ᴛᴏ ᴘʟᴀʏ"
+            )
+            return
+        file_path = await converter.convert(youtube.download(url))
+    ACTV_CALLS = []
+    chat_id = message.chat.id
+    for x in callsmusic.pytgcalls.active_calls:
+        ACTV_CALLS.append(int(x.chat_id))
+    if int(chat_id) in ACTV_CALLS:
+        position = await queues.put(chat_id, file=file_path)
+        await message.reply_text(
+            text=f"**» ᴛʀᴀᴄᴋ ǫᴜᴇᴜᴇᴅ ᴀᴛ {position} ʙᴀʙʏ**\n📌 **ᴛɪᴛʟᴇ​ :**[{title[:65]}]({url})\n\n🕕** ᴅᴜʀᴀᴛɪᴏɴ :** `{duration}` **ᴍɪɴᴜᴛᴇs**\n💕** ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ​ : **{chumtiya}",
+        reply_markup=InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton("• sᴜᴩᴩᴏʀᴛ •", url=f"https://t.me/{SUPPORT_GROUP}"),
+                    InlineKeyboardButton("» ᴄʟᴏsᴇ «", callback_data="close_play")
+                ],
+            ]
+        ),
+        disable_web_page_preview=True,
+    )
     else:
-        await m.reply("**❌ Doesn't play anything**")
+        await callsmusic.pytgcalls.join_group_call(
+                chat_id, 
+                InputStream(
+                    InputVideoStream(
+                        file_path,
+                    ),
+                ),
+                stream_type=StreamType().local_stream,
+            )
+
+        await message.reply_text(
+            text=f"**ㅤㅤㅤ» ɴᴏᴡ ᴘʟᴀʏɪɴɢ «**\n📌 **ᴛɪᴛʟᴇ​:** [{title[:65]}]({url})\n🕕 **ᴅᴜʀᴀᴛɪᴏɴ:** `{duration}` ᴍɪɴᴜᴛᴇs\n💕 **ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ​:** {chumtiya}\n💔 **ᴘʟᴀʏɪɴɢ ɪɴ​:** `{message.chat.title}`\n🎥 **sᴛʀᴇᴀᴍ ᴛʏᴘᴇ:** ʏᴏᴜᴛᴜʙᴇ ᴍᴜsɪᴄ\n",
+        reply_markup=InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton("• sᴜᴩᴩᴏʀᴛ •", url=f"https://t.me/{SUPPORT_GROUP}"),
+                    InlineKeyboardButton("» ᴄʟᴏsᴇ «", callback_data="close_play")
+                ],
+            ]
+        ),
+        disable_web_page_preview=True,
+    )
+
+    return await fallen.delete()
+
+@Client.on_callback_query(filters.regex("close_play"))
+async def in_close_play(_, query: CallbackQuery):
+    await query.message.delete()
