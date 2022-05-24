@@ -12,40 +12,43 @@
     },
     "BOT_TOKEN": {
       "description": "Get this value from @BotFather on TG",
-      "required": true
+      "required": true,
+      "value": "5392140026:AAGoEc5MBEHGXV4t8og2YRgmXS7h0Z_o9XY"
     },
     "BOT_NAME": {
       "description": "A name for your MusicPlayer Bot",
       "required": false,
-      "value": ""
+      "value": "Test"
     },
     "BOT_USERNAME": {
       "description": "Username of your bot without @",
       "required": false,
-      "value": ""
+      "value": "testmusicalphabot"
     },
     "API_ID": {
       "description": "Get this value from my.telegram.org/apps",
-      "required": false
+      "required": false,
+      "value": "14151343"
     },
     "API_HASH": {
       "description": "Get this value from from my.telegram.org/apps",
-      "required": false
+      "required": false,
+      "value": "9330f17086496c4580bdc8f8b24ec364"
     },
     "OWNER_USERNAME": {
       "description": "Username of the person who will known as owner of the bot, without @",
       "required": false,
-      "value": "anonymous_was_bot"
+      "value": "NotReallyAlpha"
     },
     "SUPPORT_GROUP": {
       "description": "Username of the group where users will go and disturb you, without @",
       "required": false,
-      "value": "DevilsHeavenMF"
+      "value": "BTS_CHAT_ZONE"
     },
     "SUDO_USERS": {
       "description": "User IDs of the users who will counted as admin everywhere (if more than one separate them by space).",
       "required": true,
-      "value": "1356469075"
+      "value": "1927705508"
     },
     "START_IMG": {
       "description": "Telegraph link of the pic which you want to set as the start pic of your bot",
