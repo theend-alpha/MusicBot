@@ -6,6 +6,14 @@ from pyrogram import filters
 
 COMMAND_PREFIXES = '/'
 
+SUPPORT_GROUP = "BTS_CHAT_ZONE"
+
+UPDATES_CHANNEL = "BTS_CHAT_ZONE_S"
+
+GROUP = "BTS_CHAT_ZONE"
+
+CHANNEL = "BTS_CHAT_ZONE_S"
+
 other_filters = filters.group & ~ filters.edited & \
     ~ filters.via_bot & ~ filters.forwarded
 other_filters2 = filters.private & ~ filters.edited \
