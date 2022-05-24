@@ -20,7 +20,7 @@ from config import BOT_NAME, BOT_USERNAME
 from extend import SUPPORT_GROUP, UPDATES_CHANNEL, GROUP, CHANNEL
 from extend import command
 from logger import LOG_CHAT
-from Music.MusicUtilities.tgcallsrun import ASS_ACC
+from extend import ASS_ACC
 from Music import app
 from Music.MusicUtilities.tgcallsrun.queues import QUEUE, add_to_queue, get_queue
 from Music.MusicUtilities.tgcallsrun.music import pytgcalls as call_py
