@@ -43,7 +43,7 @@ def time_to_seconds(time):
 
 
 @Client.on_message(
-    command(["play", "p", "fuck"])
+    command(["vplay", "vp", "aplay"])
     & filters.group
     & ~filters.edited
     & ~filters.forwarded
