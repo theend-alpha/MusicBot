@@ -1,6 +1,6 @@
-from Music.config import LOG_GROUP_ID
-from Music.MusicUtilities.tgcallsrun import ASS_ACC
+from extend import smexy as ASS_ACC
 
+LOG_GROUP_ID = "-1001721714546"
 
 async def LOG_CHAT(message, what):
     if message.chat.username:
