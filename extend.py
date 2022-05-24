@@ -31,4 +31,4 @@ app = Client(
     "MusicBot",
     API_ID,
     API_HASH,
-    bot_token=BOT_TOKEN,
+    BOT_TOKEN,
