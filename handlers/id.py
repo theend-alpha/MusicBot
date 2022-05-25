@@ -1,4 +1,6 @@
 #solo coded by @NotReallyAlpha
+#LICENSE - GNU 3.0
+#copyright ©
 
 from pyrogram import Client
 from pyrogram.types import Message
