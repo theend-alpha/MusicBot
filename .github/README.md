@@ -10,4 +10,4 @@
 
 - Try: Image Below 👇 
 
-- [![Deploy](https://te.legra.ph/file/036a953de0ad5669ed6e4.jpg)](https://heroku.com/deploy?template=https://github.com/theend-alpha/MusicBot.git)
+- [![Deploy](https://te.legra.ph/file/9f4e9b5ab5094fc5663e0.jpg)](https://heroku.com/deploy?template=https://github.com/theend-alpha/MusicBot.git)
