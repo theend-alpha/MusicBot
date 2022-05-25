@@ -13,37 +13,37 @@ async def start_(client: Client, message: Message):
     await message.reply_photo(
         photo=f"{START_IMG}",
         caption=f"""**━━━━━━━━━━━━━━━━━━
-💔 ʜᴇʏ {message.from_user.mention()} !
+Hey {message.from_user.mention()} !
 
-        ᴛʜɪs ɪs [{bn}](t.me/{bu}), ʙᴇʟᴏɴɢs ᴛᴏ ʙᴛs ᴄʜᴀᴛ ɢʀᴏᴜᴘ !
+        This is [{bn}](t.me/{bu}), Belongs to THE END network !
 
 ┏━━━━━━━━━━━━━━┓
 ┣★
-┣★ ᴍᴀᴅᴇ ʙʏ: [𝐓𝐞𝐚𝐦 𝐃𝐄𝐯](t.me/BTS_CHAT_ZONE)
+┣★ ᴍᴀᴅᴇ ʙʏ: [THE END](t.me/BTS_CHAT_ZONE)
 ┣★
 ┗━━━━━━━━━━━━━━┛
 
-💞 ɪғ ʏᴏᴜ ʜᴀᴠᴇ ᴀɴʏ ǫᴜᴇsᴛɪᴏɴs ᴀʙᴏᴜᴛ ᴍᴇ ᴛʜᴇɴ ᴅᴍ ᴛᴏ ᴍʏ [ᴏᴡɴᴇʀ](t.me/{me}) ʙᴀʙʏ...
+💞 If you having any queries regarding me, Try: (t.me/{me})
 ━━━━━━━━━━━━━━━━━━**""",
     reply_markup=InlineKeyboardMarkup(
             [
                 [
                     InlineKeyboardButton(
-                        "ᴛʀʏ: ᴀᴅᴅ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ !", url=f"https://t.me/{bu}?startgroup=true"
+                        "Try: add to your group !", url=f"https://t.me/{bu}?startgroup=true"
                        ),
                   ],[
                     InlineKeyboardButton(
-                        "✨ ᴏᴡɴᴇʀ ❤️", url=f"https://t.me/{me}"
+                        "✨ Owner ❤️", url=f"https://t.me/{me}"
                     ),
                     InlineKeyboardButton(
-                        "✨ sᴜᴘᴘᴏʀᴛ 💜", url=f"https://t.me/{SUPPORT_GROUP}"
+                        "✨ Support 💜", url=f"https://t.me/{SUPPORT_GROUP}"
                     )
                 ],[
                     InlineKeyboardButton(
-                        "🔎 ɪɴʟɪɴᴇ 🔎", switch_inline_query_current_chat=""
+                        "🔎 Inline 🔎", switch_inline_query_current_chat=""
                     ),
                     InlineKeyboardButton(
-                        "✨ 𝐃𝐄𝐯 💫", url="https://github.com/AnonymousR1025/FallenMusic"
+                        "✨ DEv 💫", url="https://github.com/AnonymousR1025/FallenMusic"
                     )]
             ]
        ),
