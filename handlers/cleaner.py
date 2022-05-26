@@ -18,9 +18,10 @@ async def clear_downloads(_, message: Message):
         for file in os.listdir(downloads):
             os.remove(os.path.join(downloads, file))
         await message.reply_text("**Deleted all files from {} database​**".format(bn) )
-    else:
+    elif:
         await message.reply_text("**Database is empty !**")
-
+    except FileNotFoundError:
+        await message.reply_text("**No database exists !**")
         
 @Client.on_message(command(["rmw", "clean"]) & ~filters.edited)
 @errors
