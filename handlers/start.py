@@ -23,7 +23,7 @@ Hey {message.from_user.mention()} !
 ┣★
 ┗━━━━━━━━━━━━━━┛
 
-💞 If you having any queries regarding me, Try: (t.me/{me})
+💞 If you having any queries regarding me, Try: (t.me/THE_END_MUSIC_SUPPORT)
 ━━━━━━━━━━━━━━━━━━**""",
     reply_markup=InlineKeyboardMarkup(
             [
