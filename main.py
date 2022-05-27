@@ -7,7 +7,7 @@ from config import API_ID, API_HASH, BOT_TOKEN
 
 
 bot = Bot(
-    ":memory:",
+    ":string:",
     API_ID,
     API_HASH,
     bot_token=BOT_TOKEN,
