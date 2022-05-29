@@ -19,11 +19,11 @@ Hey {message.from_user.mention()} !
 
 ┏━━━━━━━━━━━━━━┓
 ┣★
-┣★ ᴍᴀᴅᴇ ʙʏ: [THE END](t.me/BTS_CHAT_ZONE)
+┣★ ᴍᴀᴅᴇ ʙʏ: [THE END](t.me/THE_END_NETWORK)
 ┣★
 ┗━━━━━━━━━━━━━━┛
 
-💞 If you having any queries regarding me, Try: (t.me/THE_END_MUSIC_SUPPORT)
+💞 If you having any queries regarding me, Try: (@THE_END_MUSIC_SUPPORT)
 ━━━━━━━━━━━━━━━━━━**""",
     reply_markup=InlineKeyboardMarkup(
             [
@@ -43,7 +43,7 @@ Hey {message.from_user.mention()} !
                         "🔎 Inline 🔎", switch_inline_query_current_chat=""
                     ),
                     InlineKeyboardButton(
-                        "✨ DEv 💫", url="https://github.com/AnonymousR1025/FallenMusic"
+                        "✨ DEv 💫", url="t.me/iTz_DEv_xD"
                     )]
             ]
        ),
