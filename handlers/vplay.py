@@ -21,7 +21,7 @@ opts = {"format": "best[height=?480]/best", "noplaylist": True}
 ydl = YoutubeDL(opts)
 
 
-@Client.on_message(filters.command("play"))
+@Client.on_message(filters.command("vplay", "videoplay"))
 @authorized_users_only
 async def play(client, m: Message):
     replied = m.reply_to_message
