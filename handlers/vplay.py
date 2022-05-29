@@ -14,7 +14,7 @@ VIDEO_CALL = {}
 
 
 
-@Client.on_message(filters.group & filters.command(["stream"]))
+@Client.on_message(filters.group & filters.command(["stream", "vplay", "aplay"]))
 async def play(client, m: Message):
 	if (m.reply_to_message):
 			time.sleep(3)
