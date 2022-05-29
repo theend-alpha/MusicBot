@@ -11,7 +11,7 @@ from pytgcalls.exceptions import GroupCallNotFound
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from config import API_ID, API_HASH, SESSION_NAME
-from helper.decorators import authorized_users_only
+from helpers.decorators import authorized_users_only
 from youtube_dl import YoutubeDL
 from youtubesearchpython import VideosSearch
 
